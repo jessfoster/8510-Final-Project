@@ -1,0 +1,54 @@
+---
+title: "Almshouse Data Preprocessing"
+author: "Jessica Foster"
+date: "2023-04-18"
+output: html_document
+---
+
+Load libraries...
+```{r}
+library(DigitalMethodsData)
+library(tidyverse)
+```
+
+First I'm going to load the `almshouse_admissions` dataset from the DigitalMethodsData package.
+```{r}
+data("almshouse_admissions")
+```
+
+Next I'm going to read in the codebook (a Word document) for the Almshouse Admissions data that I downloaded from the original repository: https://repository.upenn.edu/mead/42/. To make the document easier to work with in R, I went ahead and converted the lists of codes to tables in Word. Now we can scrape the content from the Word doc using the `docxtractr` package: https://github.com/hrbrmstr/docxtractr
+
+```{r}
+library(docxtractr)
+
+almshouse.codebook <- read_docx("Codebook Almshouse Admissions 1796-1803 - with tables.docx")
+
+# Count the number of tables in the doc
+docx_tbl_count(almshouse.codebook)
+
+# Describe each table
+docx_describe_tbls(almshouse.codebook)
+
+# Extract the table of description codes and save to variable
+description.codes <- docx_extract_tbl(almshouse.codebook, 1, header=TRUE)
+
+# Extract the table of reason for discharge codes and save to variable
+reason.for.discharge.codes <- docx_extract_tbl(almshouse.codebook, 2, header=TRUE)
+```
+
+Now we have two tables for the codes and can join them to the `almshouse_admissions` dataframe. Let's clean them up a bit first. We'll need to remove the leading zeros from the codes so they match the numbers in the `almshouse_admissions`.
+```{r}
+description.codes <- description.codes %>%
+  mutate(Code = as.numeric(Code))
+
+reason.for.discharge.codes <- reason.for.discharge.codes %>%
+  mutate(Code = as.numeric(Code))
+```
+
+We can use `left_join()` to join the dataframes, matching up the descriptions and reasons for discharge based on the codes.
+```{r}
+almshouse_admissions <- left_join(almshouse_admissions, description.codes, by=c("Descriptions.by.Clerk"="Code"))
+
+almshouse_admissions <- left_join(almshouse_admissions, reason.for.discharge.codes, by=c("Reason.Discharged"="Code"))
+```
+
