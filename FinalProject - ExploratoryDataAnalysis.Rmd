@@ -1,0 +1,177 @@
+---
+title: "Final Project - Exploratory Data Analysis"
+author: "Jessica Foster"
+date: "2023-04-23"
+output: html_document
+---
+
+What is the breakdown by gender?
+```{r}
+almshouse_admissions %>%
+  group_by(Gender) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+767 people admitted to the almshouse were male, 629 female, 4 unknown.
+
+54.8% of all inmates were male. 44.9% were female. 0.3% of unknown gender.
+
+What is the breakdown by description?
+```{r}
+almshouse_admissions %>%
+  group_by(Description) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+Most common description is "none indicated" (425), followed by "child" (241), "irish" (141), "black" (95), "deranged" (39), and "pregnant" (36).
+
+30.4% of all inmates with no description, 17.2% described as "child", 10.1% described as "irish", 6.8% described as "black", 2.8% described as "deranged", and 2.6% described as "pregnant".
+
+What is the most common description for males and females, respectively?
+```{r}
+almshouse_admissions_males <- almshouse_admissions %>%
+  filter(Gender == 0) # Just show males
+
+almshouse_admissions_males %>%
+  group_by(Description) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+Most common description for males is "none indicated" (192), followed by "child" (127), "irish" (101), "black" (69), "deranged" (28).
+
+25% of males with no description, 16.6% described as "child", 13.2% described as "irish", 9% described as "black", 3.7% described as "deranged".
+
+```{r}
+almshouse_admissions_females <- almshouse_admissions %>%
+  filter(Gender == 1) # Just show females
+
+almshouse_admissions_females %>%
+  group_by(Description) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+Most common description for females is "none indicated" (231), followed by "child" (114), "irish" (40), "pregnant" (35), and "black" (28).
+
+36.7% of females with no description, 18.1% described as "child", 6.4% described as "irish", 5.6% described as "pregnant", 4.1% described as "black".
+
+To summarize: 
+
+30.4% of all inmates with no description, 17.2% described as "child", 10.1% described as "irish", 6.8% described as "black", 2.8% described as "deranged", and 2.6% described as "pregnant".
+
+25% of males with no description, 16.6% described as "child", 13.2% described as "irish", 9% described as "black", 3.7% described as "deranged".
+
+36.7% of females with no description, 18.1% described as "child", 6.4% described as "irish", 5.6% described as "pregnant", 4.1% described as "black".
+
+So this means a higher percentage of females than males had no description, also higher than percentage of total. Percentage described as "child" about the same for both sexes, with females slightly higher. Greater descrepancy with "irish": higher percentage of males than females, higher also than percentage of total.
+
+Most common descriptions:
+1. none indicated
+2. child
+3. irish
+4. black (total), black (male), pregnant (female)
+5. deranged (total), deranged (male), black (female)
+
+How many entries contain "child" in the description?
+```{r}
+almshouse_admissions %>%
+  filter(grepl("child", Description, ignore.case = TRUE)) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/1400)
+```
+17.2% described as "child", 19.9% have descriptions containing "child". So almost 20% of all inmates were children.
+
+How many children were male and how many were female?
+```{r}
+almshouse_admissions_children <- almshouse_admissions %>%
+  filter(grepl("child", Description, ignore.case = TRUE)) 
+
+almshouse_admissions_children %>%
+  group_by(Gender) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count))
+```
+52.5% of children were male. 47.5% were female.
+
+How many entries contain "black" in the description?
+```{r}
+almshouse_admissions %>%
+  filter(grepl("black", Description, ignore.case = TRUE)) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/1400)
+
+```
+6.8% described as "black", 11.6% have descriptions containing "black".
+
+```{r}
+almshouse_admissions_blacks <- almshouse_admissions %>%
+  filter(grepl("black", Description, ignore.case = TRUE)) 
+```
+
+What were the most common outcomes for all inmates?
+```{r}
+almshouse_admissions %>%
+  group_by(Reason.for.Discharge) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+Almost half of all inmates (48.5%) were discharged. 18.7% died. 13.5% "eloped" (ran away). 10.2% were "bound" (indentured). 7.9% with no reason for discharge indicated. Very small number sent to hospital or jail.
+
+What were the most common outcomes for black inmates?
+```{r}
+almshouse_admissions_blacks %>%
+  group_by(Reason.for.Discharge) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+
+35% of black inmates died. 34.3% were discharged. 10.2% were either "bound" (indentured) or "eloped" (ran away)
+
+What were the most common outcomes for children?
+```{r}
+almshouse_admissions_children %>%
+  group_by(Reason.for.Discharge) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+
+```
+43.9% of children were "bound" (indentured). 31.3% were "discharged". 15.5% died.
+
+What were the most common outcomes for males?
+```{r}
+almshouse_admissions_males %>%
+  group_by(Reason.for.Discharge) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+Almost half (48.1%) of male inmates were discharged. 19.4% died. 15.5% "eloped" (ran away). 8.6% were "bound" (indentured).
+
+What were the most common outcomes for females?
+```{r}
+almshouse_admissions_females %>%
+  group_by(Reason.for.Discharge) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+
+Outcomes of female inmates similar to males overall. Almost half (48.97%) of female inmates were discharged. 17.97% died. 12.2% were "bound" (indentured). 10.97% "eloped" (ran away). 9.1% do not have reason indicated.
+
+To summarize:
+
+Almost half of all inmates (48.5%) were discharged. 18.7% died. 13.5% "eloped" (ran away). 10.2% were "bound" (indentured). 7.9% with no reason for discharge indicated. Very small number sent to hospital or jail.
+
+Almost half (48.1%) of male inmates were discharged. 19.4% died. 15.5% "eloped" (ran away). 8.6% were "bound" (indentured).
+
+Almost half (48.97%) of female inmates were discharged. 17.97% died. 12.2% were "bound" (indentured). 10.97% "eloped" (ran away). 9.1% do not have reason indicated. Outcomes similar to males overall, though female inmates more likely to be bound out than to run away. Also more likely not to have reason for discharge indicated.
+
+43.9% of children were "bound" (indentured). 31.3% were "discharged". 15.5% died. Children much more likely to be indentured than adult inmates.
+
+35% of black inmates died. 34.3% were discharged. 10.2% were either "bound" (indentured) or "eloped" (ran away). Black inmates much more likely to die than white inmates.
