@@ -175,3 +175,54 @@ Almost half (48.97%) of female inmates were discharged. 17.97% died. 12.2% were 
 43.9% of children were "bound" (indentured). 31.3% were "discharged". 15.5% died. Children much more likely to be indentured than adult inmates.
 
 35% of black inmates died. 34.3% were discharged. 10.2% were either "bound" (indentured) or "eloped" (ran away). Black inmates much more likely to die than white inmates.
+
+
+What were the most common outcomes for inmates with "mental" problem?
+```{r}
+almshouse_admissions_mental <- almshouse_admissions %>%
+  filter(grepl("insane|deranged|lunatic|idiot|foolish|silly", Description, ignore.case = TRUE))
+
+almshouse_admissions_mental %>%
+  group_by(Reason.for.Discharge) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+32.8% of mental inmates "eloped" (ran away). 31.3% were discharged. 15.6% with no reason indicated. 12.5% died. 7.8% sent to hospital.
+
+```{r}
+almshouse_admissions_pregnant <- almshouse_admissions %>%
+  filter(grepl("pregnant", Description, ignore.case = TRUE))
+
+almshouse_admissions_pregnant %>%
+  group_by(Reason.for.Discharge) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+
+The vast majority (70.5%) of pregnant inmates were discharged. 13.7% "eloped" (ran away). 11.4% died.
+
+```{r}
+almshouse_admissions_old <- almshouse_admissions %>%
+  filter(grepl("old", Description, ignore.case = TRUE))
+
+almshouse_admissions_old %>%
+  group_by(Reason.for.Discharge) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+38.7% of "old" inmates were discharged. 32.3% died. 16.1% with no reason indicated. 9.7% "eloped" (ran away).
+
+```{r}
+almshouse_admissions_venereal <- almshouse_admissions %>%
+  filter(grepl("venereal|veneral", Description, ignore.case = TRUE))
+
+almshouse_admissions_venereal %>%
+  group_by(Reason.for.Discharge) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+
