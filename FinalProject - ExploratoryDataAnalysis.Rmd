@@ -135,6 +135,19 @@ almshouse_admissions %>%
 ```
 Almost half of all inmates (48.5%) were discharged. 18.7% died. 13.5% "eloped" (ran away). 10.2% were "bound" (indentured). 7.9% with no reason for discharge indicated. Very small number sent to hospital or jail.
 
+What were the most common outcomes for "irish" inmates?
+```{r}
+almshouse_admissions_irish <- almshouse_admissions %>%
+  filter(grepl("irish", Description, ignore.case = TRUE))
+
+almshouse_admissions_irish %>%
+  group_by(Reason.for.Discharge) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+The vast majority (61.7%) of "irish" inmates were discharged, but 19.1% died.
+
 What were the most common outcomes for black inmates?
 ```{r}
 almshouse_admissions_blacks %>%
@@ -189,6 +202,8 @@ Almost half (48.1%) of male inmates were discharged. 19.4% died. 15.5% "eloped" 
 Almost half (48.97%) of female inmates were discharged. 17.97% died. 12.2% were "bound" (indentured). 10.97% "eloped" (ran away). 9.1% do not have reason indicated. Outcomes similar to males overall, though female inmates more likely to be bound out than to run away. Also more likely not to have reason for discharge indicated.
 
 40.1% of children were "bound" (indentured). 32.5% were "discharged". 17.98% died. Children much more likely to be indentured than adult inmates.
+
+The vast majority (61.7%) of "irish" inmates were discharged, but 19.1% died.
 
 35.3% of black inmates died. 33.8% were discharged. 10.5% were either "bound" (indentured) or "eloped" (ran away). Inmates were almost 2x more likely to die if black (35.3% vs. 18.7%).
 
@@ -286,3 +301,44 @@ almshouse_admissions_bound %>%
   arrange(desc(count))
 ```
 57 inmates who were bound out were described as "child" and "female". 49 images who were bound out were described as "child" and "male". 8 were "female" "black child" and 5 were "male" "black child".
+
+## Average Length of Stay
+
+```{r}
+# Load lubridate library to combine year & month columns
+library(lubridate)
+
+# Create function to compare two date variables in dataframe
+Date.Check <- function(target.df, date.col1, date.col2) {
+  target.df %>% filter(date.col1 <= date.col2)
+}
+
+almshouse_admissions_stay <- almshouse_admissions %>%
+  filter(YearDischarged != 1) %>%
+  mutate(Date.Admitted = make_date(year = Year.Admitted, month = Month.Admitted)) %>% # Combine Year.Admitted and Month.Admitted columns, convert to YYYY-MM-DD format, display in Date.Admitted column
+  mutate(Date.Discharged = make_date(year = YearDischarged, month = MonthDischarged)) %>% # Combine YearDischarged and MonthDischarged columns, convert to YYYY-MM-DD format, display in Date.Discharged column
+  select(Last.Name, First.Name, Gender, Description, Date.Admitted, Date.Discharged, Reason.for.Discharge) # Select relevant columns
+  
+# Check dates to make sure Date.Admitted is earlier than or the same as Date.Discharged, filter out rows that don't pass validation
+almshouse_admissions_stay <- Date.Check(almshouse_admissions_stay, almshouse_admissions_stay$Date.Admitted, almshouse_admissions_stay$Date.Discharged)
+
+almshouse_admissions_stay <- almshouse_admissions_stay %>% 
+   mutate(Length.of.Stay = interval(Date.Admitted, Date.Discharged) %/% months(1)) # Calculate length of stay in almshouse in months
+
+almshouse_admissions_stay %>%
+   group_by(Description) %>% # Group by description
+   summarize(Average.Length.of.Stay = mean(Length.of.Stay)) %>% # Calculate average length of stay
+   arrange(desc(Average.Length.of.Stay))
+```
+Average length of stay in almshouse for all inmates is 6.02 months. Average length of stay for "child" is 5.2 months. For "black child" it is 7.7 months. Average length of stay for "black" inmates is 4.1 months. Average length of stay for "pregnant" inmates is 6.4 months. Average length of stay for "venereal" inmates is 5.5 months.
+
+```{r}
+almshouse_admissions_stay %>%
+   group_by(Reason.for.Discharge) %>% # Group by description
+   summarize(Average.Length.of.Stay = mean(Length.of.Stay)) %>% # Calculate average length of stay
+   arrange(desc(Average.Length.of.Stay))
+```
+
+Average length of stay for inmates later bound out is 5.5 months. Average length of stay for inmates discharged is 5.2 months. Average length of stay for inmates who died is 8.6 months.
+
+"irish" inmates make up 9.84% of inmates with year of discharge indicated. They have an average stay of 2.87 months, one of the shortest stays among all inmates.
