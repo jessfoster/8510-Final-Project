@@ -5,6 +5,8 @@ date: "2023-04-23"
 output: html_document
 ---
 
+## Gender
+
 What is the breakdown by gender?
 ```{r}
 almshouse_admissions %>%
@@ -16,6 +18,8 @@ almshouse_admissions %>%
 767 people admitted to the almshouse were male, 629 female, 4 unknown.
 
 54.8% of all inmates were male. 44.9% were female. 0.3% of unknown gender.
+
+## Description
 
 What is the breakdown by description?
 ```{r}
@@ -75,41 +79,49 @@ Most common descriptions:
 4. black (total), black (male), pregnant (female)
 5. deranged (total), deranged (male), black (female)
 
-How many entries contain "child" in the description?
+## Children
+
+How many inmates were children or infants?
 ```{r}
-almshouse_admissions %>%
-  filter(grepl("child", Description, ignore.case = TRUE)) %>%
+almshouse_admissions_children <- almshouse_admissions %>%
+  filter(grepl("child|foundling|born", Description, ignore.case = TRUE)) 
+
+almshouse_admissions_children %>%
   summarize(count = n()) %>%
   mutate(percentage =  100*count/1400)
 ```
-17.2% described as "child", 19.9% have descriptions containing "child". So almost 20% of all inmates were children.
+22.7% of all inmates were children or infants.
 
 How many children were male and how many were female?
 ```{r}
-almshouse_admissions_children <- almshouse_admissions %>%
-  filter(grepl("child", Description, ignore.case = TRUE)) 
-
 almshouse_admissions_children %>%
   group_by(Gender) %>%
   summarize(count = n()) %>%
   mutate(percentage =  100*count/sum(count))
 ```
-52.5% of children were male. 47.5% were female.
+52.1% of children were male. 47.6% were female.
 
-How many entries contain "black" in the description?
-```{r}
-almshouse_admissions %>%
-  filter(grepl("black", Description, ignore.case = TRUE)) %>%
-  summarize(count = n()) %>%
-  mutate(percentage =  100*count/1400)
+## Race
 
-```
-6.8% described as "black", 11.6% have descriptions containing "black".
-
+How many inmates were black?
 ```{r}
 almshouse_admissions_blacks <- almshouse_admissions %>%
+  filter(!grepl("blacksmith", Description, ignore.case = TRUE)) %>% # Do not include blacksmiths
   filter(grepl("black", Description, ignore.case = TRUE)) 
+
+almshouse_admissions_blacks %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/1400)
 ```
+6.8% described as "black", 9.5% have descriptions containing "black".
+
+```{r}
+almshouse_admissions_blacks %>%
+  group_by(Description) %>%
+  summarize(count = n())
+```
+
+## Reason for Discharge (Outcomes)
 
 What were the most common outcomes for all inmates?
 ```{r}
@@ -130,7 +142,7 @@ almshouse_admissions_blacks %>%
   arrange(desc(percentage))
 ```
 
-35% of black inmates died. 34.3% were discharged. 10.2% were either "bound" (indentured) or "eloped" (ran away)
+35.3% of black inmates died. 33.8% were discharged. 10.5% were either "bound" (indentured) or "eloped" (ran away).
 
 What were the most common outcomes for children?
 ```{r}
@@ -141,7 +153,7 @@ almshouse_admissions_children %>%
   arrange(desc(percentage))
 
 ```
-43.9% of children were "bound" (indentured). 31.3% were "discharged". 15.5% died.
+40.1% of children were "bound" (indentured). 32.5% were "discharged". 17.98% died.
 
 What were the most common outcomes for males?
 ```{r}
@@ -172,9 +184,9 @@ Almost half (48.1%) of male inmates were discharged. 19.4% died. 15.5% "eloped" 
 
 Almost half (48.97%) of female inmates were discharged. 17.97% died. 12.2% were "bound" (indentured). 10.97% "eloped" (ran away). 9.1% do not have reason indicated. Outcomes similar to males overall, though female inmates more likely to be bound out than to run away. Also more likely not to have reason for discharge indicated.
 
-43.9% of children were "bound" (indentured). 31.3% were "discharged". 15.5% died. Children much more likely to be indentured than adult inmates.
+40.1% of children were "bound" (indentured). 32.5% were "discharged". 17.98% died. Children much more likely to be indentured than adult inmates.
 
-35% of black inmates died. 34.3% were discharged. 10.2% were either "bound" (indentured) or "eloped" (ran away). Black inmates much more likely to die than white inmates.
+35.3% of black inmates died. 33.8% were discharged. 10.5% were either "bound" (indentured) or "eloped" (ran away). Black inmates much more likely to die than white inmates.
 
 
 What were the most common outcomes for inmates with "mental" problem?
@@ -226,3 +238,41 @@ almshouse_admissions_venereal %>%
   arrange(desc(percentage))
 ```
 
+```{r}
+almshouse_admissions_women_children <- almshouse_admissions %>%
+  filter(grepl("child|foundling|born", Description, ignore.case = TRUE) | Gender == 1) 
+```
+
+## Bound Out
+
+Let's look more closely at inmates who were bound out.
+```{r}
+almshouse_admissions_bound <- almshouse_admissions %>%
+  filter(grepl("bound", Reason.for.Discharge, ignore.case = TRUE))
+
+almshouse_admissions_bound %>%
+  group_by(Description) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+
+Only 10.2% of all inmates were "bound" (indentured) compared to 40.1% of children. This means that an inmate was 4x more likely to be bound out if a child. Also, of all inmates who were bound out, 74% are listed as "child", 9.1% listed as "black child", 3.5% as "born", 2.1% as "mulatto child". This adds up to about 88.7%. So the overwhelming majority of inmates bound out were children.
+
+Let's look at the gender of those bound out.
+```{r}
+almshouse_admissions_bound %>%
+  group_by(Gender) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+53.84% of inmates bound out were female. 46.2% were male.
+
+```{r}
+almshouse_admissions_bound %>%
+  group_by(Description, Gender) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+```
+57 inmates who were bound out were described as "child" and "female". 49 images who were bound out were described as "child" and "male". 8 were "female" "black child" and 5 were "male" "black child".
