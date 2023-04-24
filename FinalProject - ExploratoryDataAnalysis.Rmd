@@ -62,6 +62,8 @@ Most common description for females is "none indicated" (231), followed by "chil
 
 36.7% of females with no description, 18.1% described as "child", 6.4% described as "irish", 5.6% described as "pregnant", 4.1% described as "black".
 
+### Summary
+
 To summarize: 
 
 30.4% of all inmates with no description, 17.2% described as "child", 10.1% described as "irish", 6.8% described as "black", 2.8% described as "deranged", and 2.6% described as "pregnant".
@@ -176,6 +178,8 @@ almshouse_admissions_females %>%
 
 Outcomes of female inmates similar to males overall. Almost half (48.97%) of female inmates were discharged. 17.97% died. 12.2% were "bound" (indentured). 10.97% "eloped" (ran away). 9.1% do not have reason indicated.
 
+### Summary
+
 To summarize:
 
 Almost half of all inmates (48.5%) were discharged. 18.7% died. 13.5% "eloped" (ran away). 10.2% were "bound" (indentured). 7.9% with no reason for discharge indicated. Very small number sent to hospital or jail.
@@ -186,7 +190,7 @@ Almost half (48.97%) of female inmates were discharged. 17.97% died. 12.2% were 
 
 40.1% of children were "bound" (indentured). 32.5% were "discharged". 17.98% died. Children much more likely to be indentured than adult inmates.
 
-35.3% of black inmates died. 33.8% were discharged. 10.5% were either "bound" (indentured) or "eloped" (ran away). Black inmates much more likely to die than white inmates.
+35.3% of black inmates died. 33.8% were discharged. 10.5% were either "bound" (indentured) or "eloped" (ran away). Inmates were almost 2x more likely to die if black (35.3% vs. 18.7%).
 
 
 What were the most common outcomes for inmates with "mental" problem?
@@ -245,6 +249,8 @@ almshouse_admissions_women_children <- almshouse_admissions %>%
 
 ## Bound Out
 
+### Description
+
 Let's look more closely at inmates who were bound out.
 ```{r}
 almshouse_admissions_bound <- almshouse_admissions %>%
@@ -259,6 +265,8 @@ almshouse_admissions_bound %>%
 
 Only 10.2% of all inmates were "bound" (indentured) compared to 40.1% of children. This means that an inmate was 4x more likely to be bound out if a child. Also, of all inmates who were bound out, 74% are listed as "child", 9.1% listed as "black child", 3.5% as "born", 2.1% as "mulatto child". This adds up to about 88.7%. So the overwhelming majority of inmates bound out were children.
 
+### Gender
+
 Let's look at the gender of those bound out.
 ```{r}
 almshouse_admissions_bound %>%
@@ -268,6 +276,8 @@ almshouse_admissions_bound %>%
   arrange(desc(percentage))
 ```
 53.84% of inmates bound out were female. 46.2% were male.
+
+### Description & Gender
 
 ```{r}
 almshouse_admissions_bound %>%
