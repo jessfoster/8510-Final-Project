@@ -55,20 +55,20 @@ almshouse_admissions <- left_join(almshouse_admissions, reason.for.discharge.cod
 ```
 
 ```{r}
-pdf_subset("THE DAILY OCCURRENCE DOCKET OF THE PHILADELPHIA ALMSHOUSE- SELECTED ENTRIES, 1800–1804.pdf", pages = 2:23, output = "daily_occurrence_docket.pdf") # Remove unnecessary pages
-
-daily_occurrence_docket <- pdf_text("daily_occurrence_docket.pdf") %>%
-   str_split("\n")
-
-for(i in 1:22) {
-   daily_occurrence_docket[[i]] <- daily_occurrence_docket[[i]][-1:-2]
-   a <- length(daily_occurrence_docket[[i]])
-   b <- a-7
-   daily_occurrence_docket[[i]] <- daily_occurrence_docket[[i]][-b:-a]
-}
- 
-daily_occurrence_docket %>%
-  str_squish() %>%
-  str_split('\", \"\", \"')
+# pdf_subset("THE DAILY OCCURRENCE DOCKET OF THE PHILADELPHIA ALMSHOUSE- SELECTED ENTRIES, 1800–1804.pdf", pages = 2:23, output = "daily_occurrence_docket.pdf") # Remove unnecessary pages
+# 
+# daily_occurrence_docket <- pdf_text("daily_occurrence_docket.pdf") %>%
+#    str_split("\n")
+# 
+# for(i in 1:22) {
+#    daily_occurrence_docket[[i]] <- daily_occurrence_docket[[i]][-1:-2]
+#    a <- length(daily_occurrence_docket[[i]])
+#    b <- a-7
+#    daily_occurrence_docket[[i]] <- daily_occurrence_docket[[i]][-b:-a]
+# }
+#  
+# daily_occurrence_docket %>%
+#   str_squish() %>%
+#   str_split('\", \"\", \"')
 ```
 
