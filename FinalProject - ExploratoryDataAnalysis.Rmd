@@ -105,11 +105,18 @@ almshouse_admissions_children %>%
 
 ## Race
 
+```{r}
+# almshouse_admissions <- almshouse_admissions %>%
+#   mutate(Race = ifelse(Description == "black", "Black"))
+```
+
+
+
 How many inmates were black?
 ```{r}
 almshouse_admissions_blacks <- almshouse_admissions %>%
   filter(!grepl("blacksmith", Description, ignore.case = TRUE)) %>% # Do not include blacksmiths
-  filter(grepl("black", Description, ignore.case = TRUE)) 
+  filter(grepl("black|mulatto", Description, ignore.case = TRUE)) 
 
 almshouse_admissions_blacks %>%
   summarize(count = n()) %>%
@@ -125,6 +132,8 @@ almshouse_admissions_blacks %>%
 
 ## Reason for Discharge (Outcomes)
 
+### All Inmates
+
 What were the most common outcomes for all inmates?
 ```{r}
 almshouse_admissions %>%
@@ -134,6 +143,8 @@ almshouse_admissions %>%
   arrange(desc(percentage))
 ```
 Almost half of all inmates (48.5%) were discharged. 18.7% died. 13.5% "eloped" (ran away). 10.2% were "bound" (indentured). 7.9% with no reason for discharge indicated. Very small number sent to hospital or jail.
+
+### Irish Inmates
 
 What were the most common outcomes for "irish" inmates?
 ```{r}
@@ -148,6 +159,8 @@ almshouse_admissions_irish %>%
 ```
 The vast majority (61.7%) of "irish" inmates were discharged, but 19.1% died.
 
+### Black Inmates
+
 What were the most common outcomes for black inmates?
 ```{r}
 almshouse_admissions_blacks %>%
@@ -158,6 +171,21 @@ almshouse_admissions_blacks %>%
 ```
 
 35.3% of black inmates died. 33.8% were discharged. 10.5% were either "bound" (indentured) or "eloped" (ran away).
+
+```{r}
+almshouse_admissions_died <- almshouse_admissions %>%
+  filter(Reason.for.Discharge == "died")
+
+almshouse_admissions_died %>%
+  group_by(Description) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+
+Of the inmates who died, 28.2% had no description, while 12.98% were described as "black", 11.83% as "child", and 10.3% as "irish".
+
+### Children
 
 What were the most common outcomes for children?
 ```{r}
@@ -170,6 +198,8 @@ almshouse_admissions_children %>%
 ```
 40.1% of children were "bound" (indentured). 32.5% were "discharged". 17.98% died.
 
+### Males
+
 What were the most common outcomes for males?
 ```{r}
 almshouse_admissions_males %>%
@@ -179,6 +209,8 @@ almshouse_admissions_males %>%
   arrange(desc(percentage))
 ```
 Almost half (48.1%) of male inmates were discharged. 19.4% died. 15.5% "eloped" (ran away). 8.6% were "bound" (indentured).
+
+### Females
 
 What were the most common outcomes for females?
 ```{r}
@@ -206,6 +238,8 @@ Almost half (48.97%) of female inmates were discharged. 17.97% died. 12.2% were 
 The vast majority (61.7%) of "irish" inmates were discharged, but 19.1% died.
 
 35.3% of black inmates died. 33.8% were discharged. 10.5% were either "bound" (indentured) or "eloped" (ran away). Inmates were almost 2x more likely to die if black (35.3% vs. 18.7%).
+
+Of the 262 inmates who died, 12.98% were described as "black".
 
 
 What were the most common outcomes for inmates with "mental" problem?
@@ -280,6 +314,16 @@ almshouse_admissions_bound %>%
 
 Only 10.2% of all inmates were "bound" (indentured) compared to 40.1% of children. This means that an inmate was 4x more likely to be bound out if a child. Also, of all inmates who were bound out, 74% are listed as "child", 9.1% listed as "black child", 3.5% as "born", 2.1% as "mulatto child". This adds up to about 88.7%. So the overwhelming majority of inmates bound out were children.
 
+```{r}
+almshouse_admissions_bound %>%
+  filter(!grepl("blacksmith", Description, ignore.case = TRUE)) %>% # Do not include blacksmiths
+  filter(grepl("black|mulatto", Description, ignore.case = TRUE)) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/143) %>%
+  arrange(desc(percentage))
+```
+
+
 ### Gender
 
 Let's look at the gender of those bound out.
@@ -342,3 +386,29 @@ almshouse_admissions_stay %>%
 Average length of stay for inmates later bound out is 5.5 months. Average length of stay for inmates discharged is 5.2 months. Average length of stay for inmates who died is 8.6 months.
 
 "irish" inmates make up 9.84% of inmates with year of discharge indicated. They have an average stay of 2.87 months, one of the shortest stays among all inmates.
+
+
+```{r}
+almshouse_admissions_stay_blacks <- almshouse_admissions_blacks %>%
+  filter(YearDischarged != 1)
+
+almshouse_admissions %>%
+  filter(!grepl("blacksmith", Description, ignore.case = TRUE)) %>% # Do not include blacksmiths
+  filter(grepl("black", Description, ignore.case = TRUE) & YearDischarged == 1) %>%
+  group_by(Description) %>%
+  summarize(count = n()) 
+```
+
+12 inmates with "black" in description have no discharge year indicated (133 - 121).
+
+```{r}
+almshouse_admissions %>%
+  filter(!grepl("blacksmith", Description, ignore.case = TRUE)) %>% # Do not include blacksmiths
+  filter(grepl("black|mulatto", Description, ignore.case = TRUE))
+```
+Nash counts both "black" and "mulatto" as "black", so 159 or 11.4% of total.
+
+```{r}
+write.csv(almshouse_admissions, file = "almshouse_admissions.csv", row.names = TRUE, col.names = TRUE)
+```
+
