@@ -106,29 +106,43 @@ almshouse_admissions_children %>%
 ## Race
 
 ```{r}
-# almshouse_admissions <- almshouse_admissions %>%
-#   mutate(Race = ifelse(Description == "black", "Black"))
+black.descriptors <- c(1, 35, 51, 52, 78, 114, 120, 129, 201)
+mulatto.descriptors <- c(19, 36, 42)
+
+almshouse_admissions <- almshouse_admissions %>%
+   mutate(Race = case_when(Descriptions.by.Clerk %in% black.descriptors ~ "Black",
+                           Descriptions.by.Clerk %in% mulatto.descriptors ~ "Mulatto",
+                           !Descriptions.by.Clerk %in% black.descriptors | Descriptions.by.Clerk %in% mulatto.descriptors ~ "White"))
 ```
-
-
 
 How many inmates were black?
 ```{r}
-almshouse_admissions_blacks <- almshouse_admissions %>%
-  filter(!grepl("blacksmith", Description, ignore.case = TRUE)) %>% # Do not include blacksmiths
-  filter(grepl("black|mulatto", Description, ignore.case = TRUE)) 
+almshouse_admissions_black <- almshouse_admissions %>%
+  filter(Race == "Black")
 
-almshouse_admissions_blacks %>%
+almshouse_admissions_black %>%
   summarize(count = n()) %>%
   mutate(percentage =  100*count/1400)
 ```
 6.8% described as "black", 9.5% have descriptions containing "black".
 
 ```{r}
-almshouse_admissions_blacks %>%
+almshouse_admissions_black %>%
   group_by(Description) %>%
   summarize(count = n())
 ```
+
+```{r}
+almshouse_admissions_nonblack <- almshouse_admissions %>%
+  filter(Race == "White")
+
+almshouse_admissions_nonblack %>%
+  group_by(Reason.for.Discharge) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+```
+
 
 ## Reason for Discharge (Outcomes)
 
@@ -170,7 +184,9 @@ almshouse_admissions_blacks %>%
   arrange(desc(percentage))
 ```
 
-35.3% of black inmates died. 33.8% were discharged. 10.5% were either "bound" (indentured) or "eloped" (ran away).
+35.34% of black inmates died. 33.8% were discharged. 10.5% "eloped" ran away. 10.5% were "bound" (indentured).
+
+### Died
 
 ```{r}
 almshouse_admissions_died <- almshouse_admissions %>%
@@ -182,6 +198,14 @@ almshouse_admissions_died %>%
   mutate(percentage =  100*count/sum(count)) %>%
   arrange(desc(percentage))
 ```
+
+```{r}
+almshouse_admissions_died %>%
+  filter(!grepl("blacksmith", Description, ignore.case = TRUE)) %>% # Do not include blacksmiths
+  filter(grepl("black|mulatto", Description, ignore.case = TRUE)) %>%
+  summarize(count = n())
+```
+
 
 Of the inmates who died, 28.2% had no description, while 12.98% were described as "black", 11.83% as "child", and 10.3% as "irish".
 
@@ -237,9 +261,9 @@ Almost half (48.97%) of female inmates were discharged. 17.97% died. 12.2% were 
 
 The vast majority (61.7%) of "irish" inmates were discharged, but 19.1% died.
 
-35.3% of black inmates died. 33.8% were discharged. 10.5% were either "bound" (indentured) or "eloped" (ran away). Inmates were almost 2x more likely to die if black (35.3% vs. 18.7%).
+35.34% of black inmates died. 33.8% were discharged. 10.5% "eloped" ran away. 10.5% were "bound" (indentured). Compare black mortality rate 35.34% to overall 18.7%.
 
-Of the 262 inmates who died, 12.98% were described as "black".
+Of the 262 inmates who died, 12.98% were described as "black", 11.83% as "child", and 10.3% as "irish".
 
 
 What were the most common outcomes for inmates with "mental" problem?
@@ -361,7 +385,7 @@ almshouse_admissions_stay <- almshouse_admissions %>%
   filter(YearDischarged != 1) %>%
   mutate(Date.Admitted = make_date(year = Year.Admitted, month = Month.Admitted)) %>% # Combine Year.Admitted and Month.Admitted columns, convert to YYYY-MM-DD format, display in Date.Admitted column
   mutate(Date.Discharged = make_date(year = YearDischarged, month = MonthDischarged)) %>% # Combine YearDischarged and MonthDischarged columns, convert to YYYY-MM-DD format, display in Date.Discharged column
-  select(Last.Name, First.Name, Gender, Description, Date.Admitted, Date.Discharged, Reason.for.Discharge) # Select relevant columns
+  select(Last.Name, First.Name, Gender, Description, Date.Admitted, Date.Discharged, Reason.for.Discharge, Race) # Select relevant columns
   
 # Check dates to make sure Date.Admitted is earlier than or the same as Date.Discharged, filter out rows that don't pass validation
 almshouse_admissions_stay <- Date.Check(almshouse_admissions_stay, almshouse_admissions_stay$Date.Admitted, almshouse_admissions_stay$Date.Discharged)
@@ -378,7 +402,15 @@ Average length of stay in almshouse for all inmates is 6.02 months. Average leng
 
 ```{r}
 almshouse_admissions_stay %>%
-   group_by(Reason.for.Discharge) %>% # Group by description
+   group_by(Description) %>% # Group by description
+   summarize(Average.Length.of.Stay = mean(Length.of.Stay)) %>% # Calculate average length of stay
+   arrange(desc(Average.Length.of.Stay))
+```
+
+
+```{r}
+almshouse_admissions_stay %>%
+   group_by(Reason.for.Discharge) %>% # Group by reason for discharge
    summarize(Average.Length.of.Stay = mean(Length.of.Stay)) %>% # Calculate average length of stay
    arrange(desc(Average.Length.of.Stay))
 ```
@@ -387,28 +419,62 @@ Average length of stay for inmates later bound out is 5.5 months. Average length
 
 "irish" inmates make up 9.84% of inmates with year of discharge indicated. They have an average stay of 2.87 months, one of the shortest stays among all inmates.
 
-
-```{r}
-almshouse_admissions_stay_blacks <- almshouse_admissions_blacks %>%
-  filter(YearDischarged != 1)
-
-almshouse_admissions %>%
-  filter(!grepl("blacksmith", Description, ignore.case = TRUE)) %>% # Do not include blacksmiths
-  filter(grepl("black", Description, ignore.case = TRUE) & YearDischarged == 1) %>%
-  group_by(Description) %>%
-  summarize(count = n()) 
-```
-
 12 inmates with "black" in description have no discharge year indicated (133 - 121).
 
-```{r}
-almshouse_admissions %>%
-  filter(!grepl("blacksmith", Description, ignore.case = TRUE)) %>% # Do not include blacksmiths
-  filter(grepl("black|mulatto", Description, ignore.case = TRUE))
-```
 Nash counts both "black" and "mulatto" as "black", so 159 or 11.4% of total.
 
 ```{r}
 write.csv(almshouse_admissions, file = "almshouse_admissions.csv", row.names = TRUE, col.names = TRUE)
 ```
 
+
+```{r Top 5 Descriptions Graph, echo=FALSE}
+almshouse.description.graph <- almshouse_admissions %>%
+  group_by(Description) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+
+almshouse.description.graph <- head(almshouse.description.graph, n=5L)
+
+almshouse.description.graph %>%
+  mutate(Description = fct_reorder(Description, desc(percentage))) %>%
+  ggplot( aes(x=Description, y=percentage, fill = Description)) +
+  geom_bar(stat="identity") +
+  theme(legend.position="none") +
+  labs(y = "Percentage of Inmate Population", title = "Five Most Common Inmate Descriptions")
+```
+
+```{r Black Inmate Descriptions, echo=FALSE}
+almshouse.black.description.graph <- almshouse_admissions_black %>%
+  group_by(Description) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+
+almshouse.black.description.graph %>%
+  mutate(Description = fct_reorder(Description, percentage)) %>%
+  ggplot( aes(x=Description, y=percentage, fill = Description)) +
+  geom_bar(stat="identity") +
+  coord_flip() +
+  theme(legend.position="none") +
+  labs(y = "Percentage of Black Inmates", title = "Descriptions of Black Inmates")
+```
+
+The next barplot shows the breakdown by gender. Sarah Bordley and her daughter were in the minority: only one-third of black inmates were female. Two-thirds were male.
+
+```{r Black Inmate Gender, echo=FALSE}
+almshouse.black.gender.graph <- almshouse_admissions_black %>%
+  mutate(Gender = str_replace(Gender, "0", "Male")) %>% # Replace 0 with Male
+  mutate(Gender = str_replace(Gender, "1", "Female")) %>% # Replace 1 with Female
+  group_by(Gender) %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/sum(count)) %>%
+  arrange(desc(percentage))
+
+almshouse.black.gender.graph %>%
+  ggplot( aes(x=Gender, y=percentage, fill = Gender)) +
+  geom_bar(stat="identity") +
+  theme(legend.position="none") +
+  labs(y = "Percentage of Black Inmates", title = "Gender of Black Inmates")
+```
