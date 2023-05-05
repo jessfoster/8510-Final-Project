@@ -17,9 +17,6 @@ library(ggplot2)
 # Load the almshouse_admissions dataset from the DigitalMethodsData library
 data("almshouse_admissions")
 
-# Save the almshouse_admissions dataset as a csv file in this repository
-write.csv(almshouse_admissions, file = "almshouse_admissions.csv", row.names = TRUE, col.names = TRUE)
-
 # almshouse_admissions uses numeric codes for the Descriptions.by.Clerk and Reason.Discharged columns. I downloaded the codebook for this dataset from Billy G. Smith's original repository: https://repository.upenn.edu/mead/42/. To make the codebook easier to work with in R, I converted the code lists to tables in Word before uploading it to this repository. Now we can scrape the content from the Word doc using the `docxtractr` package: https://github.com/hrbrmstr/docxtractr
 
 # Read in the Almshouse Admissions Codebook Word doc
@@ -50,9 +47,37 @@ almshouse_admissions <- left_join(almshouse_admissions, description.codes, by=c(
 
 # Join reason.for.discharge.codes dataframe to almshouse_admissions dataframe
 almshouse_admissions <- left_join(almshouse_admissions, reason.for.discharge.codes, by=c("Reason.Discharged"="Code"))
+
+# Add column for Race for easier manipulation of data
+black.descriptors <- c(1, 35, 51, 52, 78, 114, 120, 129, 201) # Numeric codes for descriptions containing "black"
+mulatto.descriptors <- c(19, 36, 42) # Numeric codes for descriptions containing "mulatto"
+
+# Add race conditionally based on codes
+almshouse_admissions <- almshouse_admissions %>%
+   mutate(Race = case_when(Descriptions.by.Clerk %in% black.descriptors ~ "Black",
+                           Descriptions.by.Clerk %in% mulatto.descriptors ~ "Mulatto",
+                           !Descriptions.by.Clerk %in% black.descriptors | Descriptions.by.Clerk %in% mulatto.descriptors ~ "NA")) # If code doesn't match list for "black" or "mulatto", assign NA
+
+# Save almshouse_admissions dataframe as a csv file to this repository
+write.csv(almshouse_admissions, file = "almshouse_admissions.csv", row.names = TRUE, col.names = TRUE)
 ```
 
-On December 2, 1800, the Philadelphia Almshouse admitted Sarah Bordley and her five-year-old daughter Ann. Born into slavery in Cecil County, Maryland, Sarah had been manumitted upon the death of her master, Robert Thompson. Like thousands of other newly freed slaves, Sarah migrated north to Philadelphia, which had become known as "a center of abolitionism and benevolence toward free blacks."[^1] Life in a northern city, however, brought a new set of difficulties, especially for formerly enslaved individuals lacking urban skills, formal education, and stable health. According to her own account, recorded by the almshouse clerk, Sarah worked in Philadelphia for two years as "a Washerwoman" to support herself and Ann, until "pains through all her limbs" made it impossible for her to earn a living. By the time Sarah and her daughter sought shelter in the almshouse, they both "were in a perishing condition."[^2]  
+On December 2, 1800, the Philadelphia Almshouse admitted Sarah Bordley and her five-year-old daughter Ann. Born into slavery in Cecil County, Maryland, Sarah had been manumitted upon the death of her master, Robert Thompson. Like thousands of other newly freed slaves, Sarah migrated north to Philadelphia, which had become known as "a center of abolitionism and benevolence toward free blacks."[^1] Life in a northern city, however, brought a new set of difficulties, especially for formerly enslaved individuals lacking urban skills, formal education, and stable health. According to her own account, recorded by the almshouse clerk, Sarah worked in Philadelphia for two years as "a Washerwoman" to support herself and Ann, until "pains through all her limbs" made it impossible for her to earn a living. By the time Sarah and her daughter sought shelter in the almshouse, they both "were in a perishing condition."[^2]
+
+```{r Percentage of Black Inmates, include=FALSE}
+# How many inmates like Sarah and Ann Bordley were black?
+
+# Create subset of black inmates
+almshouse_admissions_black <- almshouse_admissions %>%
+  filter(Race == "Black")
+
+# Calculate percentage of black inmates in sample of 1400
+almshouse_admissions_black %>%
+  summarize(count = n()) %>%
+  mutate(percentage =  100*count/1400)
+
+# 133 inmates, or 9.5 percent, were black
+```
 
 Sarah and Ann Bordley were not the only free blacks who spent time in the Philadelphia Almshouse during this period. Of a sample of 1400 individuals admitted between 1796 and 1803, one hundred and thirty-three, or 9.5 percent, were described by the almshouse clerk as "black."[^3] Scholars such as Gary B. Nash have pointed to the small percentage of black inmates in the almshouse as an indication of the relative success of black Philadelphians "in securing employment and launching independent businesses," especially when compared to Irish immigrants.[^4] While most poor blacks avoided a stay in the almshouse, a closer look at the data reveals that those who did apply for relief suffered a much higher percentage of deaths than other inmates. Based on a quantitative study of inmate outcomes, I argue that, for many poor blacks, the Philadelphia Almshouse was not a temporary shelter but a place of death: the last stop in a long road of struggle against poverty, disease, and racism.  
 
