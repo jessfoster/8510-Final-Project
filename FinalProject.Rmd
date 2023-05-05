@@ -1,30 +1,54 @@
 ---
 title: "FinalProject"
 author: "Jessica Foster"
-date: "2023-04-04"
+date: "2023-05-04"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r Data Preprocessing, include=FALSE}
+# Load libraries
+library(DigitalMethodsData)
+library(tidyverse)
+library(pdftools)
+library(qpdf)
+library(docxtractr)
+library(ggplot2)
+
+# Load the almshouse_admissions dataset from the DigitalMethodsData library
+data("almshouse_admissions")
+
+# Save the almshouse_admissions dataset as a csv file in this repository
+write.csv(almshouse_admissions, file = "almshouse_admissions.csv", row.names = TRUE, col.names = TRUE)
+
+# almshouse_admissions uses numeric codes for the Descriptions.by.Clerk and Reason.Discharged columns. I downloaded the codebook for this dataset from Billy G. Smith's original repository: https://repository.upenn.edu/mead/42/. To make the codebook easier to work with in R, I converted the code lists to tables in Word before uploading it to this repository. Now we can scrape the content from the Word doc using the `docxtractr` package: https://github.com/hrbrmstr/docxtractr
+
+# Read in the Almshouse Admissions Codebook Word doc
+almshouse.codebook <- read_docx("Codebook Almshouse Admissions 1796-1803 - with tables.docx")
+
+# Count the number of tables in the Word doc
+docx_tbl_count(almshouse.codebook)
+
+# Describe each table
+docx_describe_tbls(almshouse.codebook)
+
+# Extract the table of "Description" codes and save to variable
+description.codes <- docx_extract_tbl(almshouse.codebook, 1, header=TRUE)
+
+# Extract the table of "Reason for Discharge" codes and save to variable
+reason.for.discharge.codes <- docx_extract_tbl(almshouse.codebook, 2, header=TRUE)
+
+# Remove the leading zeros from numbers in description.codes so they match the format of the numbers in the Descriptions.by.Clerk column in almshouse_admissions
+description.codes <- description.codes %>%
+  mutate(Code = as.numeric(Code))
+
+# Remove the leading zeros from numbers in reason.for.discharge.codes so they match the format of the numbers in the Reason.Discharged column in almshouse_admissions
+reason.for.discharge.codes <- reason.for.discharge.codes %>%
+  mutate(Code = as.numeric(Code))
+
+# Join description.codes dataframe to almshouse_admissions dataframe
+almshouse_admissions <- left_join(almshouse_admissions, description.codes, by=c("Descriptions.by.Clerk"="Code"))
+
+# Join reason.for.discharge.codes dataframe to almshouse_admissions dataframe
+almshouse_admissions <- left_join(almshouse_admissions, reason.for.discharge.codes, by=c("Reason.Discharged"="Code"))
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
