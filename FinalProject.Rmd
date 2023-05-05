@@ -13,6 +13,7 @@ library(pdftools)
 library(qpdf)
 library(docxtractr)
 library(ggplot2)
+library(forcats)
 
 # Load the almshouse_admissions dataset from the DigitalMethodsData library
 data("almshouse_admissions")
@@ -56,7 +57,7 @@ mulatto.descriptors <- c(19, 36, 42) # Numeric codes for descriptions containing
 almshouse_admissions <- almshouse_admissions %>%
    mutate(Race = case_when(Descriptions.by.Clerk %in% black.descriptors ~ "Black",
                            Descriptions.by.Clerk %in% mulatto.descriptors ~ "Mulatto",
-                           !Descriptions.by.Clerk %in% black.descriptors | Descriptions.by.Clerk %in% mulatto.descriptors ~ "NA")) # If code doesn't match list for "black" or "mulatto", assign NA
+                           !Descriptions.by.Clerk %in% black.descriptors | Descriptions.by.Clerk %in% mulatto.descriptors ~ "White")) # If code doesn't match list for "black" or "mulatto", assume White
 
 # Save almshouse_admissions dataframe as a csv file to this repository
 write.csv(almshouse_admissions, file = "almshouse_admissions.csv", row.names = TRUE, col.names = TRUE)
@@ -64,35 +65,40 @@ write.csv(almshouse_admissions, file = "almshouse_admissions.csv", row.names = T
 
 On December 2, 1800, the Philadelphia Almshouse admitted Sarah Bordley and her five-year-old daughter Ann. Born into slavery in Cecil County, Maryland, Sarah had been manumitted upon the death of her master, Robert Thompson. Like thousands of other newly freed slaves, Sarah migrated north to Philadelphia, which had become known as "a center of abolitionism and benevolence toward free blacks."[^1] Life in a northern city, however, brought a new set of difficulties, especially for formerly enslaved individuals lacking urban skills, formal education, and stable health. According to her own account, recorded by the almshouse clerk, Sarah worked in Philadelphia for two years as "a Washerwoman" to support herself and Ann, until "pains through all her limbs" made it impossible for her to earn a living. By the time Sarah and her daughter sought shelter in the almshouse, they both "were in a perishing condition."[^2]
 
-```{r Percentage of Black Inmates, include=FALSE}
-# How many inmates like Sarah and Ann Bordley were black?
+Sarah and Ann Bordley were not the only free blacks who spent time in the Philadelphia Almshouse during this period. Of a sample of 1400 individuals admitted between 1796 and 1803, one hundred and thirty-three, or 9.5 percent, were described by the almshouse clerk as "black."[^3] These numbers indicate only a slight overrepresentation: blacks (free and enslaved) made up 9.2 percent of the population of Philadelphia in 1800.[^4]  
 
-# Create subset of black inmates
-almshouse_admissions_black <- almshouse_admissions %>%
-  filter(Race == "Black")
+```{r Racial Composition of Inmates, echo=FALSE}
 
-# Calculate percentage of black inmates in sample of 1400
-almshouse_admissions_black %>%
+almshouse.race.graph <- almshouse_admissions %>%
+  group_by(Race) %>%
   summarize(count = n()) %>%
-  mutate(percentage =  100*count/1400)
+  mutate(percentage =  100*count/sum(count))
 
-# 133 inmates, or 9.5 percent, were black
+almshouse.race.graph %>%
+  mutate(Race = fct_reorder(Race, desc(percentage))) %>%
+  ggplot( aes(x=Race, y=percentage, fill = Race)) +
+  geom_bar(stat="identity") +
+  theme(legend.position="none") +
+  labs(y = "Percentage of Inmate Population", title = "Racial Composition of Almshouse Inmates")
+  
 ```
+  
+Scholars such as Gary B. Nash have pointed to the small percentage of black inmates in the almshouse as an indication of the relative success of black Philadelphians "in securing employment and launching independent businesses," especially when compared to Irish immigrants.[^5] While most poor blacks avoided a stay in the almshouse, a closer look at the data reveals that those who did apply for relief suffered a much higher percentage of deaths than other inmates. Based on a quantitative study of inmate outcomes, I argue that, for many poor blacks, the Philadelphia Almshouse was not a temporary shelter but a place of death: the last stop in a long road of struggle against poverty, disease, and racism.
 
-Sarah and Ann Bordley were not the only free blacks who spent time in the Philadelphia Almshouse during this period. Of a sample of 1400 individuals admitted between 1796 and 1803, one hundred and thirty-three, or 9.5 percent, were described by the almshouse clerk as "black."[^3] Scholars such as Gary B. Nash have pointed to the small percentage of black inmates in the almshouse as an indication of the relative success of black Philadelphians "in securing employment and launching independent businesses," especially when compared to Irish immigrants.[^4] While most poor blacks avoided a stay in the almshouse, a closer look at the data reveals that those who did apply for relief suffered a much higher percentage of deaths than other inmates. Based on a quantitative study of inmate outcomes, I argue that, for many poor blacks, the Philadelphia Almshouse was not a temporary shelter but a place of death: the last stop in a long road of struggle against poverty, disease, and racism.  
+In addition to giving descriptions of the inmates on admission, the almshouse clerk also noted the reasons why inmates left the almshouse. Almost half of all inmates (48.5 percent) were simply "discharged." Less than one fifth (18.7 percent) died. Over 13 percent "eloped," i.e., left the almshouse without permission. Approximately 10 percent were bound out as indentured servants. A very small percentage were sent to the hospital or jail. The rest do not have a reason for discharge indicated.
 
-The Philadelphia legislature established a new city almshouse in 1766 in response to the financial crisis brought about by the Seven Years’ War (1756-1763). According to the overseers of Philadelphia’s poor, the number of residents receiving public aid doubled between 1755 and 1764, but the existing poor tax system could no longer support them. The overseers believed that a "house of employment," in which the able-bodied poor labored for their livelihood, would be a “more humane and yet less costly” solution.[^5]
+On the surface, these outcomes do not present any surprises. The percentages of those who died are similar for all inmate groups. The high percentage of "bound" children reflects the common practice of indenturing boys and girls to local families. Irish immigrants have a much higher discharge rate (61.7 percent), which accords with the fact that they have one of the shortest average stays in the almshouse (2.87 months).
 
-While the almshouse never held more than the most destitute of Philadelphia’s poor, the racial composition of its inmate population was fairly representative of the city’s population as a whole. As noted above, black inmates made up 9.5 percent of the almshouse population in the 1796-1803 sample. These numbers indicate only a slight overrepresentation: blacks (free and enslaved) made up 9.2 percent of the population of Philadelphia in 1800.[^6] The pie charts below show, on the left, a percentage breakdown of the five most common inmate descriptions, and, on the right, a percentage breakdown of the various inmate descriptions that I have grouped under the term "black."[^7]
+However, the outcomes for black inmates require more explanation. While only 18.7 percent of all inmates died, over one third (35.3 percent) of black inmates perished in the almshouse. The percentage is even higher (37.1 percent) when inmates described as “mulatto” are added. Only a third of black inmates were discharged, while 10.5 percent eloped or were bound out as indentured servants.
 
 [^1]: Gary B. Nash, *Forging Freedom: The Formation of Philadelphia's Black Community, 1720-1840* (Cambridge, MA: Harvard University Press, 1988), 137, Ebook, https://hdl-handle-net.libproxy.clemson.edu/2027/heb01388.0001.001.
-[^2]: Billy G. Smith and Cynthia Shelton, "THE DAILY OCCURRENCE DOCKET OF THE PHILADELPHIA ALMSHOUSE: SELECTED
-ENTRIES, 1800–1804," *Pennsylvania History: A Journal of Mid-Atlantic Studies* 52, no. 3 (July 1985): 192, https://www.jstor.org/stable/27773054. See also Billy G. Smith, *The "Lower Sort": Philadelphia’s Laboring People, 1750-1800* (Ithaca, NY: Cornell University Press, 1990), 196.
+[^2]: Billy G. Smith and Cynthia Shelton, "THE DAILY OCCURRENCE DOCKET OF THE PHILADELPHIA ALMSHOUSE: SELECTED ENTRIES, 1800–1804," *Pennsylvania History: A Journal of Mid-Atlantic Studies* 52, no. 3 (July 1985): 192, https://www.jstor.org/stable/27773054. See also Billy G. Smith, *The "Lower Sort": Philadelphia’s Laboring People, 1750-1800* (Ithaca, NY: Cornell University Press, 1990), 196.
 [^3]: Billy G. Smith, "Almshouse Admissions Philadelhia 1796-1803" (March 4, 2020), distributed by University of Pennsylvania McNeil Center for Early American Studies, https://repository.upenn.edu/mead/42/. Smith created this sample from a microfilm of the Index of Admissions to the Philadelphia Almshouse housed in the Philadelphia City Archives. This sample, taken from the years 1796-1803, includes last names beginning with A through G, as well as a small number of "black" and "mulatto" individuals without last names.
-[^4]: Nash, *Forging Freedom*, 154, 155-156.
-[^5]: John K. Alexander, *Render Them Submissive: Responses to Poverty in Philadelphia, 1760-1800* (Amherst: University of Massachusetts Press, 1980), 88-89; Billy G. Smith, *Life in Early Philadelphia: Documents from the Revolutionary and Early National Periods* (University Park, PA: Pennsylvania State University Press, 1995), 30.
-[^6]: Nash, *Forging Freedom*, 143.
-[^7]: In contrast to Gary B. Nash, I have chosen not to include inmates described as "mulatto" under the term "black," unless the description reads "black or mulatto," in which case I did include them under "black." The grouping of black and mulatto inmates does not alter the conclusions I have drawn.
+[^4]: Nash, *Forging Freedom*, 143.
+[^5]: Nash, *Forging Freedom*, 154, 155-156.
+
+John K. Alexander, *Render Them Submissive: Responses to Poverty in Philadelphia, 1760-1800* (Amherst: University of Massachusetts Press, 1980), 88-89; Billy G. Smith, *Life in Early Philadelphia: Documents from the Revolutionary and Early National Periods* (University Park, PA: Pennsylvania State University Press, 1995), 30.
+
 ---
 ### Bibliography
 
