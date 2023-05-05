@@ -1,5 +1,5 @@
 ---
-title: "FinalProject"
+title: "'In a Perishing Condition': The Fate of Black Inmates in the Philadelphia Almshouse, 1796-1803"
 author: "Jessica Foster"
 date: "2023-05-04"
 output: html_document
@@ -52,3 +52,19 @@ almshouse_admissions <- left_join(almshouse_admissions, description.codes, by=c(
 almshouse_admissions <- left_join(almshouse_admissions, reason.for.discharge.codes, by=c("Reason.Discharged"="Code"))
 ```
 
+On December 2, 1800, the Philadelphia Almshouse admitted Sarah Bordley and her five-year-old daughter Ann. Born into slavery in Cecil County, Maryland, Sarah had been manumitted upon the death of her master, Robert Thompson. Like thousands of other newly freed slaves, Sarah migrated north to Philadelphia, which had become known as "a center of abolitionism and benevolence toward free blacks."[^1] Life in a northern city, however, brought a new set of difficulties, especially for formerly enslaved individuals lacking urban skills, formal education, and stable health. According to her own account, recorded by the almshouse clerk, Sarah worked in Philadelphia for two years as "a Washerwoman" to support herself and Ann, until "pains through all her limbs" made it impossible for her to earn a living. By the time Sarah and her daughter sought shelter in the almshouse, they both "were in a perishing condition."[^2]
+
+
+[^1]: Gary B. Nash, <em>Forging Freedom: The Formation of Philadelphia's Black Community, 1720-1840</em> (Cambridge, MA: Harvard University Press, 1988), 137, Ebook, https://hdl-handle-net.libproxy.clemson.edu/2027/heb01388.0001.001.
+[^2]: Billy G. Smith and Cynthia Shelton, "THE DAILY OCCURRENCE DOCKET OF THE PHILADELPHIA ALMSHOUSE: SELECTED
+ENTRIES, 1800–1804," <em>Pennsylvania History: A Journal of Mid-Atlantic Studies</em> 52, no. 3 (July 1985): 192, https://www.jstor.org/stable/27773054. See also Billy G. Smith, <em>The "Lower Sort": Philadelphia’s Laboring People, 1750-1800</em> (Ithaca, NY: Cornell University Press, 1990), 196.
+
+---
+### Bibliography
+
+Nash, Gary B. <em>Forging Freedom: The Formation of Philadelphia's Black Community, 1720-1840</em>. Cambridge, MA: Harvard University Press, 1988. Ebook. https://hdl-handle-net.libproxy.clemson.edu/2027/heb01388.0001.001.
+
+Smith, Billy G. <em>The "Lower Sort": Philadelphia’s Laboring People, 1750-1800</em>. Ithaca, NY: Cornell University Press, 1990.
+
+Smith, Billy G., and Cynthia Shelton. "THE DAILY OCCURRENCE DOCKET OF THE PHILADELPHIA ALMSHOUSE: SELECTED
+ENTRIES, 1800–1804." <em>Pennsylvania History: A Journal of Mid-Atlantic Studies</em> 52, no. 3 (July 1985): 183-205. https://www.jstor.org/stable/27773054.
