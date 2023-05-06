@@ -67,19 +67,12 @@ On December 2, 1800, the Philadelphia Almshouse admitted Sarah Bordley and her f
 
 Sarah and Ann Bordley were not the only free blacks who spent time in the Philadelphia Almshouse during this period. Of a sample of 1400 individuals admitted between 1796 and 1803, one hundred and thirty-three, or 9.5 percent, were described by the almshouse clerk as "black."[^3] These numbers indicate only a slight overrepresentation: blacks (free and enslaved) made up 9.2 percent of the population of Philadelphia in 1800.[^4]  
 
-```{r Racial Composition of Inmates, echo=FALSE}
+```{r Racial Composition of Inmates, echo=FALSE, fig.align='center'}
 
 almshouse.race.graph <- almshouse_admissions %>%
   group_by(Race) %>%
   summarize(count = n()) %>%
   mutate(percentage =  100*count/sum(count))
-
-# almshouse.race.graph %>%
-#   mutate(Race = fct_reorder(Race, desc(percentage))) %>%
-#   ggplot( aes(x=Race, y=percentage, fill = Race)) +
-#   geom_bar(stat="identity") +
-#   theme(legend.position="none") +
-#   labs(y = "Percentage of Inmate Population", title = "Racial Composition of Almshouse Inmates")
 
 almshouse.race.graph %>%
   mutate(Race = fct_reorder(Race, desc(percentage))) %>%
@@ -99,12 +92,17 @@ People could apply for admission to the almshouse with proof of legal residency 
 
 In addition to making notes on admitted inmates on admission, the almshouse clerk also noted the reasons why inmates left the almshouse. As the barplot below shows, almost half of all inmates (48.5 percent) were simply "discharged." Less than one fifth (18.7 percent) died. Over 13 percent "eloped," i.e., left the almshouse without permission. Approximately 10 percent were bound out as indentured servants. A very small percentage were sent to the hospital or jail. The rest do not have a reason for discharge indicated.
 
-```{r Reasons for Discharge, echo=FALSE}
-almshouse.discharge.graph <- almshouse_admissions %>%
-  group_by(Reason.for.Discharge) %>%
-  summarize(count = n()) %>%
-  mutate(percentage =  100*count/sum(count)) %>%
-  arrange(desc(percentage))
+```{r Reasons for Discharge, echo=FALSE, fig.align='center'}
+
+group.by.outcome <- function(target.df) {
+  target.df %>%
+    group_by(Reason.for.Discharge) %>%
+    summarize(count = n()) %>%
+    mutate(percentage =  100*count/sum(count)) %>%
+    arrange(desc(percentage))
+}
+
+almshouse.discharge.graph <- group.by.outcome(almshouse_admissions)
 
 almshouse.discharge.graph %>%
   mutate(Reason.for.Discharge = fct_reorder(Reason.for.Discharge, percentage)) %>%
@@ -116,10 +114,70 @@ almshouse.discharge.graph %>%
 
 ```
 
-```{r}
+We can break down the outcomes by gender, age, and race.
 
+```{r Inmate Outcomes By Category, echo=FALSE, fig.align='center'}
+# Create subset for male inmates
+almshouse_admissions_male <- almshouse_admissions %>%
+  filter(Gender == 0)
+
+# Group male inmates by outcome
+almshouse_admissions_male <- group.by.outcome(almshouse_admissions_male)
+
+almshouse_admissions_male <- almshouse_admissions_male %>%
+  mutate(Category = "Males") %>%
+  head(n=4L) # Take the top 4 most common outcomes
+
+# Create subset for female inmates
+almshouse_admissions_female <- almshouse_admissions %>%
+  filter(Gender == 1)
+
+# Group female inmates by outcome
+almshouse_admissions_female <- group.by.outcome(almshouse_admissions_female)
+
+almshouse_admissions_female <- almshouse_admissions_female %>%
+  mutate(Category = "Females") %>%
+  head(n=4L) # Take the top 4 most common outcomes
+
+# Create subset for child inmates
+almshouse_admissions_children <- almshouse_admissions %>%
+  filter(grepl("child|foundling|born", Description, ignore.case = TRUE)) 
+
+# Group child inmates by outcome
+almshouse_admissions_children <- group.by.outcome(almshouse_admissions_children)
+
+almshouse_admissions_children <- almshouse_admissions_children %>%
+  mutate(Category = "Children") %>%
+  head(n=4L) # Take the top 4 most common outcomes
+
+# Create subset for black inmates
+almshouse_admissions_black <- almshouse_admissions %>%
+  filter(Race == "Black")
+
+# Group black inmates by outcome
+almshouse_admissions_black <- group.by.outcome(almshouse_admissions_black)
+
+almshouse_admissions_black <- almshouse_admissions_black %>%
+  mutate(Category = "Black") %>%
+  head(n=4L) # Take the top 4 most common outcomes
+
+# Create subset for "irish" inmates
+almshouse_admissions_irish <- almshouse_admissions %>%
+  filter(grepl("irish", Description, ignore.case = TRUE))
+
+# Group Irish inmates by outcome
+almshouse_admissions_irish <- group.by.outcome(almshouse_admissions_irish)
+
+almshouse_admissions_irish <- almshouse_admissions_irish %>%
+  mutate(Category = "Irish") %>%
+  head(n=4L) # Take the top 4 most common outcomes
+
+almshouse.outcomes.graph <- bind_rows(list(almshouse_admissions_male, almshouse_admissions_female, almshouse_admissions_children, almshouse_admissions_black, almshouse_admissions_irish))
+
+almshouse.outcomes.graph %>%
+  ggplot(aes(fill=Category, y=percentage, x=Reason.for.Discharge)) + 
+    geom_bar(position="dodge", stat="identity")
 ```
-
 
 On the surface, these outcomes do not present any surprises. The percentages of those who died are similar for all inmate groups. The high percentage of "bound" children reflects the common practice of indenturing boys and girls to local families. Irish immigrants have a much higher discharge rate (61.7 percent), which accords with the fact that they have one of the shortest average stays in the almshouse (2.87 months).
 
@@ -138,12 +196,12 @@ While poor blacks were susceptible to many of the same diseases and ailments as 
 [^5]: Nash, *Forging Freedom*, 154, 155-156.
 [^6]: John K. Alexander, *Render Them Submissive: Responses to Poverty in Philadelphia, 1760-1800* (Amherst: University of Massachusetts Press, 1980), 88-89; Billy G. Smith, *Life in Early Philadelphia: Documents from the Revolutionary and Early National Periods* (University Park, PA: Pennsylvania State University Press, 1995), 30.
 [^7]: Smith, *Life in Early Philadelphia*, 35-36.
-[^8]: Smith, LEP, 36; Smith, LS, 166.
-[^9]: Nash, 173.
-[^10]: Nash, 145-146.
-[^11]: Smith, LS, 195-196.
-[^12]: Smith, LS, 55; see also Nash, 155.
-[^13]: Smith, DOD, 189; see also Smith, LS, 55.
+[^8]: Smith, *Life in Early Philadelphia*, 36; Smith, *The "Lower Sort"*, 166.
+[^9]: Nash, *Forging Freedom*, 173.
+[^10]: Nash, *Forging Freedom*, 145-146.
+[^11]: Smith, *The "Lower Sort"*, 195-196.
+[^12]: Smith, *The "Lower Sort"*, 55. See also Nash, *Forging Freedom*, 155.
+[^13]: Smith and Shelton, "DAILY OCCURRENCE DOCKET", 189. See also Smith, *The "Lower Sort"*, 55.
 ---
 ### Bibliography
 
