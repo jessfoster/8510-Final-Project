@@ -1,0 +1,11 @@
+/* Project Styles */
+
+p {
+  font-size: 16px;
+}
+
+.title, 
+.author, 
+.date {
+  text-align: center;
+}
