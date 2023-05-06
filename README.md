@@ -37,3 +37,15 @@ For the barplot showing Almshouse Inmate Outcomes by Category, I created five su
 
 ### Pie Chart
 I am aware that pie charts are not held in high esteem by some members of the R community, i.e., https://www.data-to-viz.com/caveat/pie.html. However, I made the decision to use a pie chart to visualize the racial composition of the almshouse inmate population because there are only three percentages and they are easily distinguished.
+
+## Additional Files
+You will notice three additional files called FinalProject - Data Preprocessing.Rmd, FinalProject - ExploratoryDataAnalysis.Rmd, and FinalProject - TextAnalysis.Rmd. Descriptions are below.
+
+### FinalProject - Data Preprocessing.Rmd
+This file contains my initial work to read in the Codebook and match up the numeric codes with the descriptions. There is also a commented-out section where I attempted (and failed) to read in a pdf of the journal article containing the Daily Occurrence Docket entries. I wanted to try to extract the entries and save them as individual .txt files but it turned out to be quite complicated. I ended up copying the entries manually to a Word doc.
+
+### FinalProject - ExploratoryDataAnalysis.Rmd
+This file contains most of my work before writing the essay. Here I explored the almshouse_admissions dataset, finding the percentage distributions of various categories and creating subsets. I used some of this code in FinalProject.Rmd. I also used this file as a scratch pad to store discarded code from FinalProject.Rmd.
+
+### FinalProject - TextAnalysis.Rmd
+This file records my attempts at text analysis of the Daily Occurrence Docket entries. After copying the entries manually to a Word doc, I then copied them again into individual .txt files, packaged them into a .zip file, and uploaded them to this repository along with a metadata .csv file. Unfortunately, the corpus was simply too small for any meaningful analysis. I don't think I ever got more than 10k words. While I ended up deleting the .txt files and metadata file to reduce clutter in the repository, I think it would be worthwhile to try text analysis again using more Daily Occurrence Docket entries. If a researcher has access to the original archival materials, they could create a much larger corpus, which would hopefully be more amenable to methods like topic modeling. My original goal was to find patterns in the language used to describe inmates by race, gender, or physical condition over time. I still think this could be a interesting project with a larger corpus.
